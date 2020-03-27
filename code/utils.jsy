@@ -1,0 +1,4 @@
+export const delay = @\ ms=1000 => @
+  new Promise @ y =>
+    setTimeout @ y, ms
+

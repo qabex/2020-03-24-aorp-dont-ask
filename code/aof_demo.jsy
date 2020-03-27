@@ -1,0 +1,17 @@
+import {delay} from './utils.jsy'
+
+import @{}
+  ao_walk
+  ao_animation_frames
+from 'aorp'
+
+const aof = ao_animation_frames()
+
+const raf = ao_walk @ aof, (v, obj) =>
+  console.log @ "AOF", v, obj
+
+delay(2000).then @::>
+  console.log @ "stopping AOF"
+  await aof.return()
+  console.log @ "stopped AOF"
+
