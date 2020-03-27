@@ -3,7 +3,7 @@ import {delay} from './utils.jsy'
 import @{}
   ao_walk
   ao_animation_frames
-from 'aorp'
+from 'roap'
 
 const aof = ao_animation_frames()
 

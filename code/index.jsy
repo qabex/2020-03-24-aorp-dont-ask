@@ -3,7 +3,7 @@ import @{}
   ao_dom, ao_watch
   ao_compute
   ao_watch_compute
-from 'aorp'
+from 'roap'
 
 const ao_bango = ao_dom @ '#bango', 'input', elem => + elem.value
 const ao_bingo = ao_dom @ '#bingo', 'input', elem => + elem.value

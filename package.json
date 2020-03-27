@@ -6,11 +6,11 @@
     "esm/"
   ],
   "dependencies": {
-    "aorp": "file:../aorp"
+    "roap": "file:../js-roap"
   },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^7.1.1",
-    "rollup": "^2.2.0",
+    "rollup": "^1.32.1",
     "rollup-plugin-jsy-lite": "^1.5.3"
   },
   "scripts": {
