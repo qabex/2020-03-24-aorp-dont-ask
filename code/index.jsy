@@ -5,13 +5,16 @@ import @{}
 from 'roap'
 
 ::!>
-  await document
+  while 'complete' !== document.readyState ::
+    await delay(10)
+
+  console.log @ "READY FOR SETUP"
 
   const ao_fn = ao_watch_compute @:
     red: ao_dom @ '#red', 'input', elem => + elem.value
     green: ao_dom @ '#green', 'input', elem => + elem.value
     blue: ao_dom @ '#blue', 'input', elem => + elem.value
-    pulse: ao_pulse @ 2000
+    //pulse: ao_pulse @ 2000, true
 
   const ao_color = await ao_fn @ recompute_color
   while true ::
@@ -21,6 +24,7 @@ from 'roap'
 
 async function recompute_color({red, green, blue, pulse}) ::
   const color = `rgb(${[0|red, 0|green, 0|blue]})`
+  console.log @ "RE", color
   const e_div = document.querySelector('#output')
   e_div.style.backgroundColor = color
   return color

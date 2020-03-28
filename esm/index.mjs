@@ -189,28 +189,17 @@ function ao_dom_updates(elem, evt_list='input', fn_compute='value') {
       for (const evt of evt_list) {
         elem.removeEventListener(evt, _update); } } }).bind(this)) }
 
-function ao_pulse_events(...args) {
-  return ao_tee(ao_pulse_updates(...args)) }
-
-function ao_pulse_updates(ms) {
-  return ao_updates ((async function * ( ao ) {
-    const ts0 = Date.now();
-    function _update() {
-      ao.update(Date.now() - ts0); }
-
-    const tid = setInterval(_update, ms);
-    try {yield;}
-    finally {clearInterval(tid);} }).bind(this)) }
-//# sourceMappingURL=index.mjs.map
-
 (async ()=>{
-  await document;
+  while ('complete' !== document.readyState) {
+    await delay(10);}
+
+  console.log("READY FOR SETUP");
 
   const ao_fn = ao_watch_compute_kw({
     red: ao_dom_events('#red', 'input', elem => + elem.value)
   , green: ao_dom_events('#green', 'input', elem => + elem.value)
   , blue: ao_dom_events('#blue', 'input', elem => + elem.value)
-  , pulse: ao_pulse_events(2000) });
+  , });//pulse: ao_pulse @ 2000, true
 
   const ao_color = await ao_fn(recompute_color);
   while (true) {
@@ -220,6 +209,7 @@ function ao_pulse_updates(ms) {
 
 async function recompute_color({red, green, blue, pulse}) {
   const color = `rgb(${[0|red, 0|green, 0|blue]})`;
+  console.log("RE", color);
   const e_div = document.querySelector('#output');
   e_div.style.backgroundColor = color;
   return color}
