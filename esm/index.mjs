@@ -56,7 +56,7 @@ function ao_tee(ao_iter, only_next_) {
       aod.reset();} });
 
   return {
-    inner: ao_iter
+    ao_iter
   , ao_tee(only_next=only_next_) {
       return ao_tee_dispatch(aod, only_next)}
   , [Symbol.asyncIterator]() {
@@ -73,24 +73,12 @@ async function * ao_tee_dispatch(aod, only_next) {
       return await aod.done}
     yield aod.tip;} }
 
-async function ao_watch(...args) {
-  let obj={}, ao_iter, on_update;
-  for (const ea of args) {
-    if ('function' === typeof ea) {
-      on_update = ea;}
-    else if (undefined !== ea[Symbol.asyncIterator] || ea.next) {
-      ao_iter = as_async_iter(ea);}
-    else obj = ea;}
-
-  return _ao_watcher(obj, ao_iter, on_update) }
-
 
 async function _ao_watcher(obj, ao_iter, on_update) {
   const {value, done} = await ao_iter.next();
   obj.value = value;
   obj.done = done;
-  obj.tail = done
-    ? Promise.resolve(obj)
+  obj.tail = done ? Promise.resolve(obj)
     : _ao_watcher(obj, ao_iter, on_update);
 
   if (undefined !== on_update) {
@@ -98,46 +86,46 @@ async function _ao_watcher(obj, ao_iter, on_update) {
 
   return obj}
 
-function as_ao_watch(arg) {
+async function as_ao_watch(arg) {
+  arg = await arg;
   if (undefined !== arg.tail) {
     return arg }// already an ao_watch instance
 
-  arg = as_async_iter(arg);
-  return _ao_watcher({}, arg)}
+  return await _ao_watcher({}, as_async_iter(arg)) }
 
-function _ao_watch_inner(_ao_compute_with) {
-  return (( fn_compute, on_update ) => {
-    const ao = _ao_compute_with(fn_compute);
-    return _ao_watcher({}, ao, on_update) }) }
+function _ao_wrap_watcher(_ao_compute_with) {
+  return fn_compute =>
+    _ao_watcher({}, _ao_compute_with(fn_compute)) }
 
 function ao_watch_compute_kw(by_kw) {
-  return _ao_watch_inner(
-    ao_compute_entries(
-      Object.entries(by_kw)) ) }
+  return _ao_wrap_watcher(
+    ao_compute_entries(Object.entries(by_kw)) ) }
 
 function ao_compute_entries(by_entries) {
+  return _ao_compute_with.bind(null,
+    _ao_watch_deps_map(by_entries)
+  , _ao_compute_kw) }
+
+async function _ao_watch_deps_map(by_entries) {
   const watch_deps = new Map();
   for (const [name, each] of by_entries) {
-    watch_deps.set(name, as_ao_watch(each)); }
-
-  return _ao_compute_with.bind(null,
-    watch_deps, _ao_compute_kw) }
+    watch_deps.set(name, await as_ao_watch(await each)); }
+  return watch_deps}
 
 
-
-
-async function ao_watch_join(watch_deps) {
+async function _ao_watch_join(watch_deps) {
   await new Promise (( resolve ) => {
     for (const d of watch_deps.values()) {
       d.tail.then(resolve);} }); }
 
 async function * _ao_compute_with(watch_deps, _ao_compute, fn_compute, only_next) {
+  watch_deps = await watch_deps;
   if (only_next) {
-    await ao_watch_join(watch_deps); }
+    await _ao_watch_join(watch_deps); }
 
   while (true) {
     yield _ao_compute(watch_deps, fn_compute);
-    await ao_watch_join(watch_deps); } }
+    await _ao_watch_join(watch_deps); } }
 
 function _ao_compute_kw(watch_deps, fn_compute) {
   const deps = {};
@@ -201,35 +189,38 @@ function ao_dom_updates(elem, evt_list='input', fn_compute='value') {
       for (const evt of evt_list) {
         elem.removeEventListener(evt, _update); } } }).bind(this)) }
 
-const ao_bango = ao_dom_events('#bango', 'input', elem => + elem.value);
-const ao_bingo = ao_dom_events('#bingo', 'input', elem => + elem.value);
-const ao_bongo = ao_dom_events('#bongo', 'input', elem => + elem.value);
+function ao_pulse_events(...args) {
+  return ao_tee(ao_pulse_updates(...args)) }
 
-async function trial_a() {
-  let ao_fn;
+function ao_pulse_updates(ms) {
+  return ao_updates ((async function * ( ao ) {
+    const ts0 = Date.now();
+    function _update() {
+      ao.update(Date.now() - ts0); }
 
-  {
-    const bango = await ao_watch(ao_bango, v => console.log({bango: v}));
-    const bingo = await ao_watch(ao_bingo, v => console.log({bingo: v}));
-    const bongo = await ao_watch(ao_bongo, v => console.log({bongo: v}));
+    const tid = setInterval(_update, ms);
+    try {yield;}
+    finally {clearInterval(tid);} }).bind(this)) }
+//# sourceMappingURL=index.mjs.map
 
-    ao_fn = ao_watch_compute_kw({
-      bango
-    , bingo
-    , bongo}); }
+(async ()=>{
+  await document;
 
-  const ao_v = await ao_fn(awesome);
+  const ao_fn = ao_watch_compute_kw({
+    red: ao_dom_events('#red', 'input', elem => + elem.value)
+  , green: ao_dom_events('#green', 'input', elem => + elem.value)
+  , blue: ao_dom_events('#blue', 'input', elem => + elem.value)
+  , pulse: ao_pulse_events(2000) });
 
+  const ao_color = await ao_fn(recompute_color);
   while (true) {
-    console.log(ao_v);
-    await delay(1000);} }
+    console.log('tick:', ao_color);
+    await delay(15000);} })();
 
 
-async function awesome({bango, bingo, bongo}) {
-  const color = `rgb(${[bango, bingo, bongo]})`;
+async function recompute_color({red, green, blue, pulse}) {
+  const color = `rgb(${[0|red, 0|green, 0|blue]})`;
   const e_div = document.querySelector('#output');
   e_div.style.backgroundColor = color;
   return color}
-
-Promise.resolve().then(trial_a);
 //# sourceMappingURL=index.mjs.map

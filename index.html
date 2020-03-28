@@ -26,10 +26,11 @@
 
 <body>
   <main>
-    <label>Bango <input id=bango type=range /></label>
-    <label>Bingo <input id=bingo type=range /></label>
-    <label>Bongo <input id=bongo type=range /></label>
-    <div id=output style='width: 200px; height: 200px'></div>
+    <label>Red <input id=red type=range min=0 max=255 /></label>
+    <label>Green <input id=green type=range min=0 max=255 /></label>
+    <label>Blue <input id=blue type=range min=0 max=255 /></label>
+
+    <div id=output style='height: 200px'></div>
   </main>
   <script type='module' src='./esm/index.mjs'></script>
 </body>

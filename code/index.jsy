@@ -1,43 +1,27 @@
 import { delay } from './utils.jsy'
 import @{}
-  ao_dom, ao_watch
-  ao_compute
+  ao_dom, ao_pulse,
   ao_watch_compute
 from 'roap'
 
-const ao_bango = ao_dom @ '#bango', 'input', elem => + elem.value
-const ao_bingo = ao_dom @ '#bingo', 'input', elem => + elem.value
-const ao_bongo = ao_dom @ '#bongo', 'input', elem => + elem.value
+::!>
+  await document
 
-async function trial_a() ::
-  let ao_fn
+  const ao_fn = ao_watch_compute @:
+    red: ao_dom @ '#red', 'input', elem => + elem.value
+    green: ao_dom @ '#green', 'input', elem => + elem.value
+    blue: ao_dom @ '#blue', 'input', elem => + elem.value
+    pulse: ao_pulse @ 2000
 
-  if 1 ::
-    const bango = await ao_watch @ ao_bango, v => console.log @: bango: v
-    const bingo = await ao_watch @ ao_bingo, v => console.log @: bingo: v
-    const bongo = await ao_watch @ ao_bongo, v => console.log @: bongo: v
-
-    ao_fn = ao_watch_compute @:
-      bango
-      bingo
-      bongo
-  else ::
-    ao_fn = ao_watch_compute @:
-      bango: ao_bango
-      bingo: ao_bingo
-      bongo: ao_bongo
-
-  const ao_v = await ao_fn @ awesome
-
+  const ao_color = await ao_fn @ recompute_color
   while true ::
-    console.log @ ao_v
-    await delay(1000)
+    console.log @ 'tick:', ao_color
+    await delay(15000)
 
 
-async function awesome({bango, bingo, bongo}) ::
-  const color = `rgb(${[bango, bingo, bongo]})`
+async function recompute_color({red, green, blue, pulse}) ::
+  const color = `rgb(${[0|red, 0|green, 0|blue]})`
   const e_div = document.querySelector('#output')
   e_div.style.backgroundColor = color
   return color
 
-Promise.resolve().then @ trial_a
